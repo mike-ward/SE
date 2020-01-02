@@ -1,0 +1,37 @@
+﻿@*@using SendExplorerPlus.Portal.Utilities*@
+
+@{
+  var appName = Html.Raw("SEND Explorer<sup>&reg;</sup> Express");
+  if (ViewBag.Application == "p") { appName = Html.Raw("SEND Explorer<sup>&reg;</sup> Plus"); }
+  else if (ViewBag.Application == "s") { appName = Html.Raw("SEND Explorer<sup>&reg;</sup>"); }
+  else if (ViewBag.Application == "g") { appName = Html.Raw("SEND Explorer<sup>&reg;</sup> Gold"); }
+  else if (ViewBag.Application == "w") { appName = Html.Raw("SEND Explorer<sup>&reg;</sup> Warehouse"); }
+}
+
+<div class="footer hideForPrint">
+  <hr />
+  <p>Copyright &copy; 2019 INDS, Inc. All Rights Reserved.</p>
+
+  <p>
+    @* @appName Version @Html.ApplicationVersion()<br />*@
+    @ViewBag.LicenseStatusText
+  </p>
+
+  <p>
+    <a href="~/status" class="ignore-visited">Status</a>
+    | <a href="~/license-status" class="ignore-visited">License</a>
+    | <a href="#" class="ignore-visited" onclick="resetAllSettings()">Reset all locally stored settings&hellip;</a>
+  </p>
+
+  <p>SEND Explorer<sup>&reg;</sup> is a registered trademark of INDS Inc.</p>
+</div>
+
+<script>
+  function resetAllSettings() {
+    if (confirm('Are you sure?')) {
+      localStorage.clear();
+      alert('All local storage settings cleared');
+      return false;
+    }
+  }
+</script>

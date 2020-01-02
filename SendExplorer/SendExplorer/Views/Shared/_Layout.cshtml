@@ -1,0 +1,387 @@
+﻿@using System.Linq
+@functions {
+
+  private bool IsAdmin()
+  {
+    var user = Html.CurrentUser as UserIdentity;
+    if (user == null) return false;
+    return user.Claims.Any(claim => claim.ToUpperInvariant() == "ADMIN");
+  }
+
+  bool IsDataSteward()
+  {
+    var user = Html.CurrentUser as UserIdentity;
+    if (user == null) return false;
+    return user.Claims.Any(claim => claim.ToUpperInvariant() == "ADMIN" || claim.ToUpperInvariant() == "DATA STEWARD");
+  }
+
+  bool IsSuperUser()
+  {
+    var user = Html.CurrentUser as UserIdentity;
+    if (user == null) return false;
+    return user.Claims.Any(claim => claim.ToUpperInvariant() == "ADMIN" || claim.ToUpperInvariant() == "SUPER USER");
+  }
+
+  string UserName()
+  {
+    var user = Html.CurrentUser as UserIdentity;
+    return user != null ? user.FullName : "";
+  }
+
+  string UserId()
+  {
+    var user = Html.CurrentUser as UserIdentity;
+    return user != null ? user.UserName : "";
+  }
+
+}
+
+@{
+  var isAdmin = IsAdmin() ? "true" : "false";
+  var isSteward = IsDataSteward() ? "true" : "false";
+  var isSuperUser = IsSuperUser() ? "true" : "false";
+  var userName = UserName();
+  var userId = UserId();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>@ViewBag.Title</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="SHORTCUT ICON" type="image/png" href="~/assets/images/favicon.ico">
+  <link href="~/styles.css" rel="stylesheet" />
+  <base href="@ViewBag.WebsiteUrl" />
+  <script>
+    // // true if IE less than 9
+    if (!-[1,]) alert("Internet Explorer 7 and 8 are not supported");
+  </script>
+  @RenderSection("header", false)
+</head>
+<body>
+  <a name='top'></a>
+
+  <script>
+      window.isAdmin = @isAdmin;
+      window.isSteward = @isSteward;
+      window.isSuperUser = @isSuperUser;
+      window.userName = '@userName';
+      window.globalUserId = '@userId';
+  </script>
+
+  @RenderSection("brandingTop", false)
+  <div class="header hideForPrint">
+
+    <!-- Login / User links -->
+    <div class="login">
+      @if (Html.CurrentUser == null)
+      {
+        <a href="~/account/login">log in</a>
+      }
+      else
+      {
+        <a href="~/account/update">@(((UserIdentity)Html.CurrentUser).FullName)</a>
+        <span>|</span>
+        if (IsAdmin())
+        {
+          <a href="~/admin/dashboard">Admin</a>
+          <span>|</span>
+        }
+        else if (IsDataSteward() && IsSuperUser())
+        {
+          <span>Data Steward +</span>
+          <span>|</span>
+        }
+        else if (IsDataSteward())
+        {
+          <span>Data Steward</span>
+          <span>|</span>
+        }
+        else if (IsSuperUser())
+        {
+          <span>Super User</span>
+          <span>|</span>
+        }
+        <a href="~/account/logout">log out</a>
+      }
+    </div>
+
+    <!-- Big Banner -->
+    <div class="banner">
+      @if (ViewBag.Application == "s")
+      {
+        <img src="~/assets/images/send-explorer-logo.png" alt="SEND Explorer Logo" />
+      }
+      else if (ViewBag.Application == "p")
+      {
+        <img src="~/assets/images/send-explorer-plus-logo.png" alt="SEND Explorer Plus Logo" />
+      }
+      else if (ViewBag.Application == "g")
+      {
+        <img src="~/assets/images/send-explorer-gold-logo.png" alt="SEND Explorer Gold Logo" />
+      }
+      else if (ViewBag.Application == "w")
+      {
+        <img src="~/assets/images/send-explorer-warehouse-logo.png" alt="SEND Explorer Warehouse Logo" />
+      }
+    </div>
+  </div>
+
+  <div class="pure-menu pure-menu-horizontal center hideForPrint top-nav">
+    <!-- Mini Banner -->
+    <span class="banner-mini">
+      @if (ViewBag.Application == "s")
+      {
+        <img src="~/assets/images/send-explorer-logo-mini.png" alt="SEND Explorer Logo" />
+      }
+      else if (ViewBag.Application == "p")
+      {
+        <img src="~/assets/images/send-explorer-plus-logo-mini.png" alt="SEND Explorer Plus Logo" />
+      }
+      else if (ViewBag.Application == "g")
+      {
+        <img src="~/assets/images/send-explorer-gold-logo-mini.png" alt="SEND Explorer Gold Logo" />
+      }
+      else if (ViewBag.Application == "w")
+      {
+        <img src="~/assets/images/send-explorer-warehouse-logo-mini.png" alt="SEND Explorer Warehouse Logo" />
+      }
+    </span>
+
+    <!-- Menu -->
+    <ul class="pure-menu-list">
+      @if (ViewBag.Application == "p" || ViewBag.Application == "g" || ViewBag.Application == "w")
+      {
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/">Home</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/dashboard">Dashboard</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/single-study">Single-Study</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/multi-study">Multi-Study</a>
+        </li>
+        <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+          <a class="pure-menu-link">Visualizations</a>
+          <ul class="pure-menu-children" style="border: solid 1px gray; text-align: left;">
+            @if (ViewBag.ShowVizCorrelationsMatrix)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/correlations-matrix">Multi-Study Correlations Matrix</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizTimecourseGrid)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/multi-grid">Multi-Study Timecourse Grid</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizScatterplotTimecourse)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/scatterplot-timecourse">Multi-Study Scatterplot Timecourse</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizHistoBarchart)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/histo-barchart">Multi-Study Histo Barchart</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizSubjectCompare)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/subject-compare">Multi-Study Subject Compare</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizHistoricalControls)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/hcvd">Historical Control Values Distribution</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizClinPathHistoSev)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/histo-severity-lb">Multi-Study Clin Path vs Histo Severity</a>
+              </li>
+            }
+            @if (ViewBag.ShowVizExposureHistoSev)
+            {
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/histo-severity-pp">Multi-Study Exposure vs Histo Severity</a>
+              </li>
+            }
+          </ul>
+        </li>
+        if ((ViewBag.Application == "g" || ViewBag.Application == "w") && IsDataSteward())
+        {
+          <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+            <a class="pure-menu-link">Data Steward</a>
+            <ul class="pure-menu-children" style="border: solid 1px gray; text-align: left;">
+              @if (ViewBag.Application == "w")
+              {
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/connectors">Connectors</a>
+                </li>
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/domains">Domains</a>
+                </li>
+              }
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/warehouse/load-history">Load History</a>
+              </li>
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/warehouse/load-queue">Load Queue</a>
+              </li>
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/warehouse/load-schedule">Load Schedule</a>
+              </li>
+              @if (ViewBag.Application == "w")
+              {
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/source-systems">Source Systems</a>
+                </li>
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/source-system-types">Source System Types</a>
+                </li>
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/unreconciled">Unreconciled Terms</a>
+                </li>
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/reconciled">View Reconciled Terms</a>
+                </li>
+              }
+              <li class="pure-menu-item">
+                <a class="pure-menu-link" href="~/warehouse/watch-folders">Watch Folders</a>
+              </li>
+              @if (ViewBag.Application == "w")
+              {
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/source-study-mapping">Study/Subject Mapping</a>
+                </li>
+                <li class="pure-menu-item">
+                  <a class="pure-menu-link" href="~/warehouse/record-override">Record Override</a>
+                </li>
+              }
+            </ul>
+          </li>
+        }
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/help">Help</a>
+        </li>
+      }
+      else if (ViewBag.Application == "s")
+      {
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/">Home</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/upload">Upload SEND File</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/help">Help on SEND Explorer</a>
+        </li>
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="~/feedback">Your Feedback</a>
+        </li>
+      }
+    </ul>
+    <hr />
+  </div>
+
+  <div id="content">
+    @RenderBody()
+  </div>
+  @RenderSection("brandingBottom", false)
+  @Html.Partial("footer")
+
+  <script>
+    function globalMakeSiteLink(link) { return '@ViewBag.WebSiteUrl' + link; }
+
+    function clearGlobalTimeout() { localStorage.removeItem('lastAction'); }
+
+    var globalRootScope;
+    function closeAllDialogs(ev) {
+      if (!globalRootScope) return;
+      var phase = globalRootScope.$root.$$phase
+      if (phase == '$apply' || phase == '$digest') return;
+
+      globalRootScope.$apply(function() {
+        globalRootScope.closeAll && globalRootScope.closeAll(ev);
+        globalRootScope.$broadcast('heatmap-unhighlight');
+      });
+    }
+  </script>
+
+  @if (true)
+  {
+    <script>
+      var globalTimeout;
+
+      function globalHeartBeat() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', globalMakeSiteLink('heartbeat?' + Date.now()));
+        xhr.send();
+      }
+
+      function setGlobalTimeout() {
+        localStorage.setItem('lastAction', JSON.stringify(new Date().getTime()));
+        if (globalTimeout) clearTimeout(globalTimeout);
+        globalTimeout = setTimeout(onGlobalTimeout, 1000);
+        globalHeartBeat();
+      }
+
+      function IsInactiveTooLong() {
+        localStorage.setItem('unused', null); // Workaround for IE issue, lastAction value isn't synced across browsers unless a get is performed
+        const item = localStorage.getItem('lastAction');
+        const lastAction = item ? JSON.parse(item) : new Date().getTime;
+        const limit = new Date().getTime() - (@ViewBag.SessionTimeout * 60 * 1000);
+        return (lastAction < limit);
+      }
+
+      function onGlobalTimeout() {
+        if (IsInactiveTooLong()) window.location = window.globalMakeSiteLink('account/logout');
+        else globalTimeout = setTimeout(onGlobalTimeout, 1000);
+      }
+
+      // When first loading, if it's been too long since last activity, log the user out and reload the desired page
+      if (IsInactiveTooLong()) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST',  globalMakeSiteLink('account/logout?' + Date.now()));
+        xhr.send();
+        location.reload();
+      }
+
+      setGlobalTimeout();
+
+      function globalMakeSiteLink(link) { return '@ViewBag.WebsiteUrl' +  link; }
+
+      function globalMaxTimeCourseStudies() { return  @ViewBag.MaxTimeCourseStudies}
+
+      var maxSubjectCompareSubjectsAllowed = @ViewBag.MaxSubjectCompareSubjectsAllowed;
+      var variabilityAnalysis = @ViewBag.VariabilityAnalysis;
+      var isLicensePlus = "@ViewBag.Application" == 'p';
+      var isLicenseGold = "@ViewBag.Application" == 'g';
+      var isLicenseWarehouse = "@ViewBag.Application" == 'w';
+      var isLicensePlusOrBetter = isLicensePlus || isLicenseGold || isLicenseWarehouse;
+      var isLicenseGoldOrBetter = isLicenseGold || isLicenseWarehouse;
+
+      // This is to allow user to click in a background area to close all open dialogs
+      // Simply handling onclick will allow a click-drag operation (such as selecting text) to close dialogs if it ends over a background area (undesirable)
+      // Handling mouseup will apply to all controls on the page - the app is built around stop-event stopping the click event, not the other mouse events
+      // So this stores the target of the mousedown event and compares it to the click event - if they match, then close dialogs, otherwise ignore
+      var mouseTarget = null;
+      window.onmousedown = evt => mouseTarget = evt.target;
+      window.onclick = evt => {
+          if (mouseTarget === evt.target) closeAllDialogs();
+          mouseTarget = null;
+      };
+    </script>
+  }
+</body>
+</html>
